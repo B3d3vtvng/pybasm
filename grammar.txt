@@ -1,0 +1,13 @@
+var_dec: TT_ident, TT_equ, ExpressionNode | TT_ident | FuncCallNode | ArrayIndexNode | LiteralNode, TT_eol
+if_statement: TT_if, ConditionExpressionNode, TT_colon, TT_eol
+else_statement: TT_else, TT_colon, TT_eol
+elif_statement: TT_elif, ConditionExpressionNode, TT_colon, TT_eol
+for_loop: TT_for, TT_ident, TT_in, TT_ident | FuncCallNode, TT_colon, TT_eol
+while_loop: TT_while, TT_bool | FuncCallNode | TT_ident | ConditionExpressionNode, TT_colon, TT_eol
+func_call: TT_ident, TT_lbraces, ExpressionNode | LiteralNode | TT_ident, TT_rbraces
+func_def: TT_def, TT_ident, TT_lbraces, TT_ident, TT_comma, ... , TT_rbraces, TT_colon, TT_eol
+expression: ExpressionNode | LiteralNode | TT_ident | FuncCallNode, TT_plus | TT_minus | TT_mul | TT_dif, ExpressionNode | LiteralNode | TT_ident | FuncCallNode
+literal: TT_int | TT_str | TT_float | TT_bool | ArrayNode
+array: TT_lbracket, None | LiteralNode, TT_comma, ..., TT_rbracket
+condition_expression: ExpressionNode | LiteralNode | TT_ident | FuncCallNode, (TT_equ, TT_equ) | (TT_greater, TT_equ) | (TT_less, TT_equ) | TT_less | TT_greater, ExpressionNode | LiteralNode | TT_ident | FuncCallNode
+array_idx: TT_ident, TT_lbracket, ExpressionNode | FuncCallNode | TT_ident | ArrayIndexNode | 

@@ -26,5 +26,7 @@ class Compiler():
         if parser.error:
             print(parser.error)
             exit(1)
-        print(ast)
+        for token in ast:
+            print(token)
+            print("\n")
             

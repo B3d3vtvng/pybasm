@@ -5,5 +5,5 @@ class Token():
         self.token_t = token_t
         self.token_v = token_v
 
-    def __str__(self):
+    def __repr__(self):
         return f"{self.ln}:{self.token_idx}: {self.token_t}:{self.token_v}"

@@ -1,3 +1,4 @@
+from src.utils.error import SyntaxError
 from src.tokens import Token
 from src.nodes import *
 
@@ -13,7 +14,7 @@ class Parser():
     
     def make_literal_nodes(self) -> list[Token | ASTNode]:
         tokens_lits_as_nodes = []
-        for token in self.tokens:
+        for i, token in enumerate(self.tokens):
             match token.token_t:
                 case "TT_int" | "TT_float":
                     tokens_lits_as_nodes.append(NumberNode(token.token_v))

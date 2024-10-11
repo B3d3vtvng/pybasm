@@ -1,6 +1,6 @@
 from src.utils.error import SyntaxError
 from src.utils.operators import EXPR_OPERATORS, BIN_OP_OPERATORS
-from src.utils.node_handlers import NODE_HANDLERS
+#from src.utils.node_handlers import NODE_HANDLERS
 from src.tokens import Token
 from src.nodes import *
 

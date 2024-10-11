@@ -21,7 +21,6 @@ class ASTBaseNode(ASTNode):
         
         return f"main[\n{tab_offset}    Children[{tab_offset}    {child_str}\n{tab_offset}    ]\n{tab_offset}    Len: {len(self.children)}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
-
 class NumberNode(ASTNode):
     def __init__(self, value: int | float) -> None:
         super().__init__()
@@ -236,7 +235,7 @@ class AST():
     def set_cur_node_by_idx(self, idx: int) -> None:
         self.cur_node = self.base_node.children[idx]
 
-    def traverse_node(self, trvs_type: str) -> None:
+    def traverse_node(self, trvs_type: str = "children") -> None:
         parent_node = self.cur_node
         if not parent_node.__getattribute__(trvs_type):
             return -1
@@ -354,16 +353,13 @@ class AST():
 
 if __name__ == "__main__":
     test_ast = AST()
-    test_ast.append_node(IfNode(None, None))
-    test_ast.traverse_node("children")
-    test_ast.append_node(ExpressionNode(None, '==', None), "condition")
-    test_ast.traverse_node("condition")
-    test_ast.append_node(VarNode("x"), "left")
+    test_ast.append_node(BinOpNode(None, "+", None, "int"))
+    test_ast.traverse_node()
+    test_ast.append_node(BinOpNode(None, "*", None, "int"), "left")
     test_ast.append_node(NumberNode(10), "right")
-    test_ast.detraverse_node()
-    test_ast.append_node(FuncCallNode("print", []))
-    test_ast.traverse_node("children")
-    test_ast.append_node(StringNode("Hello World"), "args")
+    test_ast.traverse_node("left")
+    test_ast.append_node(NumberNode(5), "left")
+    test_ast.append_node(NumberNode(5), "right")
     test_ast.detraverse_node()
     test_ast.detraverse_node()
     

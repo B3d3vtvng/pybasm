@@ -1,0 +1,2 @@
+"Building a Parser: A Beginner Friendly Guide to Construction an AST-Based Parser", published by Abou Zuhayr through "Medium" on 09.10.2024, last accessed on 11.10.2024, 15:15, Link: https://medium.com/gopenai/building-a-parser-a-beginner-friendly-guide-to-constructing-an-ast-based-parser-37d4a0e782d4
+

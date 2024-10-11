@@ -1,0 +1,32 @@
+Expressions:
+
+simple_literal: TT_int | TT_float | TT_str | TT_bool
+Array_literal: TT_lbracket, (Bin_op_expression, TT_comma, ...), Bin_op_expression, TT_rbracket
+
+simple_var: TT_ident
+Array_var: TT_ident, TT_lbracket, Expression, TT_rbracket
+Slice: Expression, TT_colon, Expression
+function_call: TT_ident, TT_lparen, (Expression, TT_comma), Expression, TT_rparen
+
+term: simple_literal | Array_literal | function_call | ArrayVar
+UnOpExpression: TT_min | TT_not, Expression
+BinOpExpression: Expression, TT_plus | TT_min | TT_mul | TT_div, Expression
+LogicalExpression: Expression, TT_and | TT_or, Expression
+
+Condition: (Expression, TT_greater | TT_less |(TT_equ, TT_equ), Expression) | term | UnOpExpression | LogicalExpression
+
+Assign: TT_ident, TT_equ, Expression
+
+
+
+Control Flow:
+
+if: TT_if, Condition, TT_colon
+elif: TT_elif, Condition, TT_colon
+else: TT_else, TT_colon
+
+while: TT_while, Condition, TT_colon
+for: TT_for, TT_ident, TT_int, term
+
+function_def: TT_def, TT_ident, TT_lparen, (TT_ident, TT_comma, ...), TT_ident, TT_rparen, TT_colon
+return: TT_return, Expression

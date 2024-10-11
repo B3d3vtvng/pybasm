@@ -1,0 +1,4 @@
+- LL(k) Parser (Top-down, leftmost first)
+- Recursive Descent: Parsing Functions call each other recursively
+- Avoid left recursive Expressions (infinite loop)
+- Avoid double traversal

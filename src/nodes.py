@@ -264,8 +264,9 @@ class AST():
     
     def set_cur_node_by_idx(self, idx: int) -> None:
         self.cur_node = self.base_node.children[idx]
+        return None
 
-    def traverse_node(self, trvs_type: str = "children") -> None:
+    def traverse_node(self, trvs_type: str = "children") -> None | int:
         parent_node = self.cur_node
         if not parent_node.__getattribute__(trvs_type):
             return -1
@@ -274,14 +275,30 @@ class AST():
         if isinstance(self.cur_node, list):
             self.cur_node = self.cur_node[0]
         self.cur_node.parent = parent_node
+        return None
 
     def next_child_node(self) -> None:
         parent_node = self.cur_node.parent
-        self.cur_node = [node for node in parent_node.children if node.id == self.cur_node.id +1][0]
+        cur_node_idx = parent_node.children.index(self.cur_node)
+        if cur_node_idx == len(parent_node.children)-1:
+            return None
+        self.cur_node = parent_node.children[cur_node_idx+1]
         self.cur_node.parent = parent_node
+        return None
+
+    def prev_child_node(self) -> None:
+        parent_node = self.cur_node.parent
+        cur_node_idx = parent_node.children.index(self.cur_node)
+        if cur_node_idx == 0:
+            return None
+        self.cur_node = self.parent_node.children[cur_node_idx-1]
+        if not self.cur_node.parent:
+            self.cur_node.parent = parent_node
+        return None
 
     def detraverse_node(self) -> None:
         self.cur_node = self.cur_node.parent
+        return None
 
     def get_node_by_id(self, id: int) -> ASTNode:
         old_cur_node = self.cur_node
@@ -380,7 +397,6 @@ class AST():
     def __repr__(self):
         return self.base_node.__repr__()
 
-
 if __name__ == "__main__":
     test_ast = AST()
     test_ast.append_node(BinOpNode(None, "+", None, "int"))
@@ -393,12 +409,4 @@ if __name__ == "__main__":
     test_ast.detraverse_node()
     test_ast.detraverse_node()
     
-
     print(test_ast)
-
-            
-            
-
-    
-
-    

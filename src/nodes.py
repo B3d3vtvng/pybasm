@@ -19,8 +19,21 @@ class ASTBaseNode(ASTNode):
             child_str += f"\n{"    " * child.repr_offset}{child}"
             child_str = child_str
         
-        return f"main[\n{tab_offset}    Children[{tab_offset}    {child_str}\n{tab_offset}    ]\n{tab_offset}    Len: {len(self.children)}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+        return f"Module[\n{tab_offset}    Children[{tab_offset}    {child_str}\n{tab_offset}    ]\n{tab_offset}    Len: {len(self.children)}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+    
+class ExpressionNode(ASTNode):
+    def __init__(self, op: str) -> None:
+        super().__init__()
+        self.left = None
+        self.op = op
+        self.right = None
 
+    def __repr__(self) -> str:
+        self.left.repr_offset = self.repr_offset + 2
+        self.right.repr_offset = self.repr_offset + 2
+        tab_offset = "    " * self.repr_offset
+        return f"ExpressionNode[\n{tab_offset}    Left[ \n{tab_offset}        {self.left}\n{tab_offset}    ]\n{tab_offset}    Operator: '{self.op}'  \n{tab_offset}    Right:[\n{tab_offset}        {self.right}\n{tab_offset}    ]    \n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+    
 class NumberNode(ASTNode):
     def __init__(self, value: int | float) -> None:
         super().__init__()
@@ -39,7 +52,6 @@ class StringNode(ASTNode):
         tab_offset = "    " * self.repr_offset
         return f"StringNode[\n{tab_offset}    Value: {self.value}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
-
 class BoolNode(ASTNode):
     def __init__(self, value: bool) -> None:
         super().__init__()
@@ -50,9 +62,9 @@ class BoolNode(ASTNode):
         return f"BoolNode[\n{tab_offset}    Value: {self.value}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
 class ArrayNode(ASTNode):
-    def __init__(self, children: list[ASTNode]) -> None:
+    def __init__(self) -> None:
         super().__init__()
-        self.children = children
+        self.children = []
 
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
@@ -73,21 +85,31 @@ class VarNode(ASTNode):
         return f"VarNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
 class ArrayVarNode(ASTNode):
-    def __init__(self, name: str, idx: int):
+    def __init__(self, name: str):
         super().__init__()
         self.name = name
-        self.idx = idx
+        self.content = None
 
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
-        return f"ArrayVarNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Idx: {self.idx}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+        return f"ArrayVarNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Content: {self.content}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+    
+class SliceExpressionNode(ASTNode):
+    def __init__(self) -> None:
+        super().__init__()
+        self.left = None
+        self.right = None
 
-class VarDecNode(ASTNode):
-    def __init__(self, name: str, value: ASTNode, type: str) -> None:
+class AssignNode(ASTNode):
+    def __init__(self, name: str) -> None:
         super().__init__()
         self.name = name
-        self.value = value
+        self.value = None
+        self.type = None
+
+    def set_type(self, type: str) -> None:
         self.type = type
+        return None
 
     def __repr__(self) -> str:
         self.value.repr_offset = self.repr_offset + 2
@@ -95,12 +117,16 @@ class VarDecNode(ASTNode):
         return f"VarDecNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Value[\n{tab_offset}        {self.value}\n{tab_offset}    ]\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
 class BinOpNode(ASTNode):
-    def __init__(self, left: NumberNode | StringNode | ArrayNode | VarNode, op: str, right: NumberNode | StringNode | ArrayNode | VarNode, type: str) -> None:
+    def __init__(self, op: str) -> None:
         super().__init__()
-        self.left = left
+        self.left = None
         self.op = op
-        self.right = right
+        self.right = None
+        self.type = None
+
+    def set_type(self, type: str) -> None:
         self.type = type
+        return None
 
     def __repr__(self) -> str:
         self.left.repr_offset = self.repr_offset + 2
@@ -109,23 +135,40 @@ class BinOpNode(ASTNode):
         return f"BinOpNode[\n{tab_offset}    Left[ \n{tab_offset}        {self.left}\n{tab_offset}    ]\n{tab_offset}    Operator: '{self.op}'  \n{tab_offset}    Right:[\n{tab_offset}        {self.right}\n{tab_offset}    ]    \n{tab_offset}    Id: {self.id}\n{tab_offset}]"
     
 class UnOpNode(ASTNode):
-    def __init__(self, op: str, right: ASTNode, type: str) -> None:
+    def __init__(self, op: str) -> None:
         super().__init__()
         self.op = op
-        self.right = right
+        self.right = None
+        self.type = None
+
+    def set_type(self, type: str) -> None:
         self.type = type
+        return None
 
     def __repr__(self) -> str:
         self.right.repr_offset = self.repr_offset + 2
         tab_offset = "    " * self.repr_offset
         return f"UnOpNode[\n{tab_offset}    Right[\n{tab_offset}        {self.right}\n{tab_offset}    ] \n{tab_offset}    Operator: '{self.op}'\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+    
+class Condition(ASTNode):
+    def __init__(self, op: str) -> None:
+        super().__init__()
+        self.left = None
+        self.op = op
+        self.right = None
+
+class LogicalExpressionNode(ASTNode):
+    def __init__(self, op: str) -> None:
+        self.left = None
+        self.op = op
+        self.right = None
 
 class FuncDefNode(ASTNode):
-    def __init__(self, name: str, arg_names: list[str], children: list[ASTNode]) -> None:
+    def __init__(self, name: str, arg_names: list[str]) -> None:
         super().__init__()
         self.name = name
         self.arg_names = arg_names
-        self.children = children
+        self.children = None
 
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
@@ -137,10 +180,10 @@ class FuncDefNode(ASTNode):
         return f"FuncDefNode[\n{tab_offset}    Children[{tab_offset}        {child_str}\n{tab_offset}    ]\n{tab_offset}    Len: {len(self.children)}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
 class FuncCallNode(ASTNode):
-    def __init__(self, name: str, args: list[ASTNode]) -> None:
+    def __init__(self, name: str) -> None:
         super().__init__()
         self.name = name
-        self.args = args
+        self.args = None
 
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
@@ -152,11 +195,11 @@ class FuncCallNode(ASTNode):
         return f"FuncCallNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Args[{tab_offset}        {arg_str}\n{tab_offset}    ]\n{tab_offset}    Len: {len(self.args)}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
 class ForLoopNode(ASTNode):
-    def __init__(self, iter_var_name: str, iter: ArrayNode | VarNode | FuncCallNode, children: list[ASTNode]) -> None:
+    def __init__(self, iter_var_name: str) -> None:
         super().__init__()
         self.iter_var_name = iter_var_name
-        self.iter = iter
-        self.children = children
+        self.iter = None
+        self.children = None
 
     def __repr__(self) -> str:
         self.iter.repr_offset = self.repr_offset + 2
@@ -168,24 +211,11 @@ class ForLoopNode(ASTNode):
         
         return f"ForLoopNode[\n{tab_offset}    Iter Var Name: {self.iter_var_name}\n{tab_offset}    Iter[\n{tab_offset}        {self.iter}\n{tab_offset}    Children[{tab_offset}        {child_str}\n{tab_offset}    ]\n{tab_offset}    Len: {len(self.children)}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
-class ExpressionNode(ASTNode):
-    def __init__(self, left: BinOpNode | VarNode | ArrayVarNode | FuncCallNode | ExpressionNode, op: str, right: BinOpNode | VarNode | ArrayVarNode | FuncCallNode | ExpressionNode) -> None:
-        super().__init__()
-        self.left = left
-        self.op = op
-        self.right = right
-
-    def __repr__(self) -> str:
-        self.left.repr_offset = self.repr_offset + 2
-        self.right.repr_offset = self.repr_offset + 2
-        tab_offset = "    " * self.repr_offset
-        return f"ExpressionNode[\n{tab_offset}    Left[ \n{tab_offset}        {self.left}\n{tab_offset}    ]\n{tab_offset}    Operator: '{self.op}'  \n{tab_offset}    Right:[\n{tab_offset}        {self.right}\n{tab_offset}    ]    \n{tab_offset}    Id: {self.id}\n{tab_offset}]"
-
 class WhileLoopNode(ASTNode):
-    def __init__(self, condition: ExpressionNode | FuncCallNode | VarNode | ArrayVarNode | BoolNode, children: list[ASTNode]) -> None:
+    def __init__(self) -> None:
         super().__init__()
-        self.condition = condition
-        self.children = children
+        self.condition = None
+        self.children = None
 
     def __repr__(self) -> str:
         self.condition.repr_offset = self.repr_offset + 2
@@ -198,10 +228,10 @@ class WhileLoopNode(ASTNode):
         return f"WhileLoopNode[\n{tab_offset}    Condition[\n{tab_offset}        {self.condition}\n{tab_offset}    Children[{tab_offset}        {child_str}\n{tab_offset}    ]\n{tab_offset}    Len: {len(self.children)}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
 class IfNode(ASTNode):
-    def __init__(self, condition: ExpressionNode, children: list[ASTNode]) -> None:
+    def __init__(self) -> None:
         super().__init__()
-        self.condition = condition
-        self.children = children
+        self.condition = None
+        self.children = None
 
     def __repr__(self) -> str:
         repr_res = WhileLoopNode.__repr__(self)
@@ -209,18 +239,18 @@ class IfNode(ASTNode):
         return repr_res
 
 class ElifNode(ASTNode):
-    def __init__(self, condition: ExpressionNode | FuncCallNode | VarNode | ArrayVarNode | BoolNode, prev_conditions: list[IfNode | ElifNode], children: list[ASTNode]) -> None:
+    def __init__(self, prev_conditions: list[ASTNode]) -> None:
         super().__init__()
-        self.condition = condition
+        self.condition = None
         self.prev_conditions = prev_conditions
-        self.children = children
+        self.children = None
 
 class ElseNode(ASTNode):
-    def __init__(self, condition: ExpressionNode | FuncCallNode | VarNode | ArrayVarNode | BoolNode, prev_conditions: list[IfNode | ElifNode], children: list[ASTNode]) -> None:
+    def __init__(self, prev_conditions: list[IfNode | ElifNode]) -> None:
         super().__init__()
-        self.condition = condition
+        self.condition = None
         self.prev_conditions = prev_conditions
-        self.children = children
+        self.children = None
 
 class AST():
     def __init__(self) -> None:

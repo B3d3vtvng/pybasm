@@ -195,7 +195,7 @@ class Lexer():
     def get_indentation(self, line: str, line_idx: int) -> None | Token:
         space = " "
         highest_pind = None
-        for i in range(1, 8):
+        for i in range(1, 40):
             check_str = space * i
             if line[:i] == check_str:
                 highest_pind = i

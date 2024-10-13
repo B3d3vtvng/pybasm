@@ -18,7 +18,7 @@ class Compiler():
     def compile(self):
         lexer = Lexer(self.file_n)
         tokens = lexer.make_tokens()
-        print(tokens)
+        #print(tokens)
         if lexer.error:
             print(lexer.error)
             exit(1)
@@ -27,7 +27,4 @@ class Compiler():
         if parser.error:
             print(parser.error)
             exit(1)
-        for token in ast:
-            print(token)
-            print("\n")
-            
+        print(ast)

@@ -18,7 +18,6 @@ class Compiler():
     def compile(self):
         lexer = Lexer(self.file_n)
         tokens = lexer.make_tokens()
-        #print(tokens)
         if lexer.error:
             print(lexer.error)
             exit(1)
@@ -28,3 +27,4 @@ class Compiler():
             print(parser.error)
             exit(1)
         print(ast)
+

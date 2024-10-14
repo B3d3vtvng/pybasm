@@ -100,6 +100,20 @@ class SliceExpressionNode(ASTNode):
         self.left = None
         self.right = None
 
+    def __repr__(self) -> str:
+        if self.left:
+            self.left.repr_offset = self.repr_offset + 2
+            left = self.left
+        else:
+            left = "None"
+        if self.right:
+            self.right.repr_offset = self.repr_offset + 2
+            right = self.right
+        else:
+            right = "None"
+        tab_offset = "    " * self.repr_offset
+        return f"SliceExpressionNode[\n{tab_offset}    Left[\n{tab_offset}        {left}\n{tab_offset}    ]\n{tab_offset}    Operator: ':'\n{tab_offset}    Right[\n{tab_offset}        {right}\n{tab_offset}    ]\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+
 class AssignNode(ASTNode):
     def __init__(self, name: str) -> None:
         super().__init__()
@@ -150,18 +164,28 @@ class UnOpNode(ASTNode):
         tab_offset = "    " * self.repr_offset
         return f"UnOpNode[\n{tab_offset}    Right[\n{tab_offset}        {self.right}\n{tab_offset}    ] \n{tab_offset}    Operator: '{self.op}'\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
     
-class Condition(ASTNode):
+class ConditionExpressionNode(ASTNode):
     def __init__(self, op: str) -> None:
         super().__init__()
         self.left = None
         self.op = op
         self.right = None
 
+    def __repr__(self) -> str:
+        self_repr = BinOpNode.__repr__(self)
+        self_repr = "ConditionExpressionNode" + self_repr[9:]
+        return self_repr
+
 class LogicalExpressionNode(ASTNode):
     def __init__(self, op: str) -> None:
         self.left = None
         self.op = op
         self.right = None
+
+    def __repr__(self) -> str:
+        self_repr = BinOpNode.__repr__(self)
+        self_repr = "LogicalExpressionNode" + self_repr[9:]
+        return self_repr
 
 class FuncDefNode(ASTNode):
     def __init__(self, name: str, arg_names: list[str]) -> None:
@@ -176,8 +200,19 @@ class FuncDefNode(ASTNode):
         for child in self.children:
             child.repr_offset = self.repr_offset + 2
             child_str += f"\n{"    " * child.repr_offset}{child}"
+        arg_str = ", ".join(self.arg_names)
         
-        return f"FuncDefNode[\n{tab_offset}    Children[{tab_offset}        {child_str}\n{tab_offset}    ]\n{tab_offset}    Len: {len(self.children)}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+        return f"FuncDefNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Args: {arg_str}\n{tab_offset}    Children[{tab_offset}        {child_str}\n{tab_offset}    ]\n{tab_offset}    Len: {len(self.children)}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+    
+class ReturnNode(ASTNode):
+    def __init__(self) -> None:
+        super().__init__()
+        self.return_value = None
+
+    def __str__(self) -> str:
+        tab_offset = "    " * self.repr_offset
+        self.return_value.repr_offset = self.repr_offset + 2
+        return f"ReturnNode[\n{tab_offset}    ReturnValue[\n{tab_offset}        {self.return_value}\n{tab_offset}    ]\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
 class FuncCallNode(ASTNode):
     def __init__(self, name: str) -> None:
@@ -239,18 +274,37 @@ class IfNode(ASTNode):
         return repr_res
 
 class ElifNode(ASTNode):
-    def __init__(self, prev_conditions: list[ASTNode]) -> None:
+    def __init__(self) -> None:
         super().__init__()
         self.condition = None
-        self.prev_conditions = prev_conditions
+        self.prev_conditions = None
         self.children = None
 
+    def __repr__(self) -> str:
+        self.condition.repr_offset = self.repr_offset + 2
+        tab_offset = "    " * self.repr_offset
+        prev_condition_str = f""
+        for prev_condition in self.prev_conditions:
+            prev_condition.repr_offset = self.repr_offset + 2
+            prev_condition_str += f"\n{"    " * prev_condition.repr_offset}{child}"
+        child_str = f""
+        for child in self.children:
+            child.repr_offset = self.repr_offset + 2
+            child_str += f"\n{"    " * child.repr_offset}{child}"
+        
+        return f"ElifNode[\n{tab_offset}    Condition[\n{tab_offset}        {self.condition}\n{tab_offset}    PreviousConditions[\n{tab_offset}        {prev_condition_str}\n{tab_offset}    ]\n{tab_offset}    Children[{tab_offset}        {child_str}\n{tab_offset}    ]\n{tab_offset}    Len: {len(self.children)}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+
 class ElseNode(ASTNode):
-    def __init__(self, prev_conditions: list[IfNode | ElifNode]) -> None:
+    def __init__(self) -> None:
         super().__init__()
         self.condition = None
-        self.prev_conditions = prev_conditions
+        self.prev_conditions = None
         self.children = None
+        
+    def __repr__(self) -> str:
+        self_repr = ElifNode.__repr__(self)
+        self_repr = "ElseNode" + self_repr[8:]
+        return self_repr
 
 class AST():
     def __init__(self) -> None:
@@ -267,6 +321,8 @@ class AST():
         return None
 
     def traverse_node(self, trvs_type: str = "children") -> None | int:
+        if not isinstance(trvs_type, str):
+            raise Exception(f"Trvs type must be str, not {type(trvs_type)}, {trvs_type}")
         parent_node = self.cur_node
         if not parent_node.__getattribute__(trvs_type):
             return -1
@@ -283,7 +339,8 @@ class AST():
         if cur_node_idx == len(parent_node.children)-1:
             return None
         self.cur_node = parent_node.children[cur_node_idx+1]
-        self.cur_node.parent = parent_node
+        if not self.cur_node.parent:
+            self.cur_node.parent = parent_node
         return None
 
     def prev_child_node(self) -> None:
@@ -291,9 +348,8 @@ class AST():
         cur_node_idx = parent_node.children.index(self.cur_node)
         if cur_node_idx == 0:
             return None
-        self.cur_node = self.parent_node.children[cur_node_idx-1]
-        if not self.cur_node.parent:
-            self.cur_node.parent = parent_node
+        self.cur_node = parent_node.children[cur_node_idx-1]
+        self.cur_node.parent = parent_node
         return None
 
     def detraverse_node(self) -> None:
@@ -345,7 +401,7 @@ class AST():
         
     def get_node_by_id_children_handler(self, id: int) -> ASTNode | None:
         parent_node = self.cur_node
-        self.traverse_cur_node("children")
+        self.traverse_node("children")
         for i in range(len(parent_node.children)):
             res = self.get_node_by_id_traverse_search(id)
             if res:
@@ -356,12 +412,22 @@ class AST():
     
     def get_node_by_id_binop_handler(self, id: int, side: str) -> ASTNode | None:
         parent_node = self.cur_node
-        self.traverse_cur_node(side)
+        self.traverse_node(side)
         res = self.get_node_by_id_traverse_search(id)
         if res:
             return res
         self.cur_node = parent_node
         return None
+    
+    def traverse_node_by_id(self, id: int, traversal_type: str = "children") -> None:
+        parent_node = self.cur_node
+        for child in parent_node.children:
+            if not child.parent:
+                child.parent = parent_node
+            if child.id == id:
+                self.cur_node = child
+                return
+        raise Exception(f"No Node with id {id} contained in {traversal_type} of node {self.cur_node}")
 
     def append_node(self, node: ASTNode, type: str = "children") -> None:
         node.parent = self.cur_node
@@ -372,16 +438,16 @@ class AST():
             if not self.cur_node.children:
                 self.cur_node.children = []
             self.cur_node.__setattr__(type, self.cur_node.children + [node])
-            return None
+            return node.id
         
         if type == "args":
             if not self.cur_node.args:
                 self.cur_node.args = []
             self.cur_node.__setattr__("args", self.cur_node.args + [node])
-            return None
+            return node.id
 
         self.cur_node.__setattr__(type, node)
-        return None
+        return node.id
     
     def insert_child_node_by_idx(self, idx: int, node: ASTNode) -> None:
         node.parent = self.cur_node
@@ -399,14 +465,9 @@ class AST():
 
 if __name__ == "__main__":
     test_ast = AST()
-    test_ast.append_node(BinOpNode(None, "+", None, "int"))
+    test_ast.append_node(SliceExpressionNode())
     test_ast.traverse_node()
-    test_ast.append_node(BinOpNode(None, "*", None, "int"), "left")
-    test_ast.append_node(NumberNode(10), "right")
-    test_ast.traverse_node("left")
-    test_ast.append_node(NumberNode(5), "left")
     test_ast.append_node(NumberNode(5), "right")
-    test_ast.detraverse_node()
     test_ast.detraverse_node()
     
     print(test_ast)

@@ -18,7 +18,7 @@ TOKEN_TYPES = {
     "DIV": ("TT_div", "/"),
     "MOD": ("TT_mod", "%"),
     "EQU": ("TT_equ", "="),
-    "NEQU": ("TT_nequ", "!="),
+    "EXCLAM": ("TT_exclam", "!"),
     "GREATER": ("TT_greater", ">"),
     "LESS": ("TT_less", "<"),
     "COMMA": ("TT_comma", ","),

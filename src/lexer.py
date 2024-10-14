@@ -1,6 +1,6 @@
-from src.utils.tokentypes import TOKEN_TYPES, KEYWORDS
+from src.utils.tokentypes import TOKEN_TYPES, KEYWORDS 
 from src.utils.error import SyntaxError
-from src.tokens import Token
+from src.utils.tokens import Token
 from src.utils.sort_tokens import sort_tokens
 from src.utils.lrange import lrange
 
@@ -75,7 +75,8 @@ class Lexer():
                     tokens.append(token)
                     
         tokens = sort_tokens(tokens)
-        tokens.append(Token(tokens[len(tokens)-1].ln+1, -1, "TT_eof", None))
+        if tokens:
+            tokens.append(Token(tokens[-1].ln+1, -1, "TT_eof", None))
         return tokens
     
     def make_typed_tokens(self, kw_tokens: list[Token]) -> tuple[list[Token]]:
@@ -213,7 +214,6 @@ class Lexer():
             else:
                 occ_idxs += range(token.token_idx, token.token_idx + len(token.token_v))
         return occ_idxs
-
     
     def make_typed_token(self, ln: int, non_token_idx: int, non_token: str) -> Token:
         if non_token.isdigit():

@@ -34,3 +34,11 @@ class SyntaxError(Error):
 class IndentationError(Error):
     def __init__(self, error_v: str, error_ln: int, file_n: str) -> None:
         super().__init__("IndentationError", error_v, error_ln, file_n)
+
+class TypeError(Error):
+    def __init__(self, error_v, error_ln, file_n) -> None:
+        super().__init__("TypeError", error_v, error_ln, file_n)
+
+class NameError(Error):
+    def __init__(self, error_v, error_ln, file_n) -> None:
+        super().__init__("NameError", error_v, error_ln, file_n)

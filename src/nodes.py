@@ -27,6 +27,7 @@ class ExpressionNode(ASTNode):
         self.left = None
         self.op = op
         self.right = None
+        self.type = None
 
     def __repr__(self) -> str:
         self.left.repr_offset = self.repr_offset + 2
@@ -38,6 +39,7 @@ class NumberNode(ASTNode):
     def __init__(self, value: int | float) -> None:
         super().__init__()
         self.value = value
+        self.type = None
         
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
@@ -47,6 +49,7 @@ class StringNode(ASTNode):
     def __init__(self, value: str) -> None:
         super().__init__()
         self.value = value
+        self.type = "string"
 
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
@@ -56,6 +59,7 @@ class BoolNode(ASTNode):
     def __init__(self, value: bool) -> None:
         super().__init__()
         self.value = value
+        self.type = "bool"
 
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
@@ -65,6 +69,7 @@ class ArrayNode(ASTNode):
     def __init__(self) -> None:
         super().__init__()
         self.children = []
+        self.type = "list"
 
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
@@ -79,6 +84,7 @@ class VarNode(ASTNode):
     def __init__(self, name: str) -> None:
         super().__init__()
         self.name = name
+        self.type = None
 
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
@@ -89,6 +95,7 @@ class ArrayVarNode(ASTNode):
         super().__init__()
         self.name = name
         self.content = None
+        self.type = "list"
 
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
@@ -99,6 +106,7 @@ class SliceExpressionNode(ASTNode):
         super().__init__()
         self.left = None
         self.right = None
+        self.type = "int"
 
     def __repr__(self) -> str:
         if self.left:
@@ -120,10 +128,6 @@ class AssignNode(ASTNode):
         self.name = name
         self.value = None
         self.type = None
-
-    def set_type(self, type: str) -> None:
-        self.type = type
-        return None
 
     def __repr__(self) -> str:
         self.value.repr_offset = self.repr_offset + 2
@@ -170,6 +174,7 @@ class ConditionExpressionNode(ASTNode):
         self.left = None
         self.op = op
         self.right = None
+        self.type = "bool"
 
     def __repr__(self) -> str:
         self_repr = BinOpNode.__repr__(self)
@@ -181,6 +186,7 @@ class LogicalExpressionNode(ASTNode):
         self.left = None
         self.op = op
         self.right = None
+        self.type = "bool"
 
     def __repr__(self) -> str:
         self_repr = BinOpNode.__repr__(self)
@@ -190,9 +196,15 @@ class LogicalExpressionNode(ASTNode):
 class FuncDefNode(ASTNode):
     def __init__(self, name: str, arg_names: list[str]) -> None:
         super().__init__()
+        self.indentation = None
         self.name = name
         self.arg_names = arg_names
+        self.arg_types = None
         self.children = None
+        self.func_call_nodes = None
+        self.func_identifier_dict = {}
+        self.var_identifier_dict = {}
+        self.return_type = None
 
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
@@ -208,6 +220,7 @@ class ReturnNode(ASTNode):
     def __init__(self) -> None:
         super().__init__()
         self.return_value = None
+        self.type = None
 
     def __str__(self) -> str:
         tab_offset = "    " * self.repr_offset
@@ -219,6 +232,7 @@ class FuncCallNode(ASTNode):
         super().__init__()
         self.name = name
         self.args = None
+        self.type = None
 
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
@@ -233,6 +247,7 @@ class ForLoopNode(ASTNode):
     def __init__(self, iter_var_name: str) -> None:
         super().__init__()
         self.iter_var_name = iter_var_name
+        self.iter_var_type = None
         self.iter = None
         self.children = None
 
@@ -250,6 +265,7 @@ class WhileLoopNode(ASTNode):
     def __init__(self) -> None:
         super().__init__()
         self.condition = None
+        self.condition_type = "bool"
         self.children = None
 
     def __repr__(self) -> str:
@@ -266,6 +282,7 @@ class IfNode(ASTNode):
     def __init__(self) -> None:
         super().__init__()
         self.condition = None
+        self.condition_type = "bool"
         self.children = None
 
     def __repr__(self) -> str:
@@ -277,6 +294,7 @@ class ElifNode(ASTNode):
     def __init__(self) -> None:
         super().__init__()
         self.condition = None
+        self.condition_type = "bool"
         self.prev_conditions = None
         self.children = None
 
@@ -298,6 +316,7 @@ class ElseNode(ASTNode):
     def __init__(self) -> None:
         super().__init__()
         self.condition = None
+        self.condition_type = "bool"
         self.prev_conditions = None
         self.children = None
         
@@ -457,8 +476,16 @@ class AST():
         self.sort_ids()
         return None
     
-    def sort_ids(self):
-        pass
+    def get_parent_node(self, searched_node: ASTNode) -> ASTNode:
+        old_cur_node = self.cur_node
+        while not isinstance(self.cur_node, ASTBaseNode):
+            if isinstance(self.cur_node, searched_node):
+                node = self.cur_node
+                self.cur_node = old_cur_node
+                return node
+            self.detraverse_node()
+        self.cur_node = old_cur_node
+        return -1
 
     def __repr__(self):
         return self.base_node.__repr__()

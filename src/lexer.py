@@ -210,7 +210,7 @@ class Lexer():
             if token.token_t == "TT_eol":
                 continue
             if token.token_t != "TT_str":
-                occ_idxs += range(token.token_idx, token.token_idx + len(self.get_token_ident(token.token_t)))
+                occ_idxs += range(token.token_idx, token.token_idx + len(get_token_ident(token.token_t)))
             else:
                 occ_idxs += range(token.token_idx, token.token_idx + len(token.token_v))
         return occ_idxs
@@ -221,7 +221,8 @@ class Lexer():
         elif self.isfloat(non_token):
             token = self.make_float_token(ln, non_token_idx, non_token)
         elif non_token == "True" or non_token == "False":
-            token = Token(ln, non_token_idx, "TT_bool", non_token)
+            bool_value = True if non_token == "True" else False
+            token = Token(ln, non_token_idx, "TT_bool", bool_value)
         else:
             token = Token(ln, non_token_idx, "TT_identifier", non_token)
 
@@ -240,9 +241,6 @@ class Lexer():
             elif not char.isdigit():
                 return False
             return True
-
-    def get_token_ident(self, token_name: str) -> str:
-        return TOKEN_TYPES[token_name[3:].upper()][1]
     
     def make_float_token(self, ln: int, non_token_idx: int, non_token: str) -> Token:
         float_val_left, float_val_right = non_token.split(".")
@@ -280,3 +278,6 @@ class Lexer():
             return True
         
         return False
+    
+def get_token_ident(token_name: str) -> str:
+        return TOKEN_TYPES[token_name[3:].upper()][1]

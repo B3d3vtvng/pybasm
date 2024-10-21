@@ -17,16 +17,29 @@ char* bool_to_str(bool var){
 }
 
 //################################List###############################
+enum Types{
+    INT,
+    FLOAT,
+    BOOL,
+    STRING,
+    LIST
+};
 
 typedef struct{
     void* element;
-    char* type;
+    int type;
 } list_element_t;
 
 typedef struct {
     int length;
     list_element_t* list_content;
 } list_t;
+
+int list_get_int(void* element);
+float list_get_float(void* element);
+bool list_get_bool(void* element);
+char* list_get_str(void* element);
+list_t list_get_list(void* element);
 
 list_t list_create() {
     list_t new_list;
@@ -35,10 +48,10 @@ list_t list_create() {
     return new_list;
 }
 
-list_t list_append(list_t list, char* type, void* element) {
+list_t list_append(list_t list, int type, void* element) {
     list.length++;
 
-    list.list_content = (list_element_t*)realloc(list.list_content, list.length * sizeof(list_element_t));
+    list.list_content = realloc(list.list_content, list.length * sizeof(list_element_t));
 
     if (list.list_content == NULL){
         errorprint("Fatal Error: Failed reallocation during list_append() function for instance of type list_t!", REALLOC_FAILURE);
@@ -46,17 +59,17 @@ list_t list_append(list_t list, char* type, void* element) {
 
     list_element_t new_element;
     new_element.element = element;
-    new_element.type = strdup(type);
+    new_element.type = type;
 
     list.list_content[list.length-1] = new_element;
 
     return list;
 }
 
-list_t list_insert(list_t list, int index, char* type, void* element){
+list_t list_insert(list_t list, int index, int type, void* element){
     list.length = list.length+1;
 
-    list.list_content = (list_element_t*)realloc(list.list_content, list.length * sizeof(list_element_t));
+    list.list_content = realloc(list.list_content, list.length * sizeof(list_element_t));
 
     if (list.list_content == NULL){
         errorprint("Fatal Error: Failed reallocation during list_insert() function for instance of type list_t!", REALLOC_FAILURE);
@@ -68,7 +81,7 @@ list_t list_insert(list_t list, int index, char* type, void* element){
 
     list_element_t new_element;
     new_element.element = element;
-    new_element.type = strdup(type);
+    new_element.type = type;
 
     list.list_content[index] = new_element;
     
@@ -90,30 +103,41 @@ char* list_print(list_t list) {
     for (int i = 0; i < list.length; i++) {
         list_element_t cur_list_element = list.list_content[i];
         void* cur_element = cur_list_element.element;
-        char* type = cur_list_element.type;
+        int type = cur_list_element.type;
 
-        if (strcmp(type, "str") == 0) {
-            char* element = (char*)cur_element;
-            strcat(output, element);
-        } else if (strcmp(type, "int") == 0) {
-            int element = *(int*)cur_element;
-            char buffer[50];
-            sprintf(buffer, "%d", element);
-            strcat(output, buffer);
-        } else if (strcmp(type, "float") == 0) {
-            float element = *(float*)cur_element;
-            char buffer[50];
-            sprintf(buffer, "%f", element);
-            strcat(output, buffer);
-        } else if (strcmp(type, "bool") == 0) {
-            bool element = *(bool*)cur_element;
-            strcat(output, bool_to_str(element));
-        } else if (strcmp(type, "list") == 0) {
-            list_t list_element = *(list_t*)cur_element;
-            char* element = list_print(list_element);
-            strcat(output, element);
-            free(element);
-            free(cur_element);
+        switch (type){
+            case INT: {
+                int element = *(int*)cur_element;
+                char buffer[50];
+                sprintf(buffer, "%d", element);
+                strcat(output, buffer);
+                break;
+            }
+            case FLOAT: {
+                float element = *(float*)cur_element;
+                char buffer[50];
+                sprintf(buffer, "%f", element);
+                strcat(output, buffer);
+                break;
+            }
+            case BOOL: {
+                bool element = *(bool*)cur_element;
+                strcat(output, bool_to_str(element));
+                break;
+            }
+            case STRING: {
+                char* element = (char*)cur_element;
+                strcat(output, "'");
+                strcat(output, element);
+                strcat(output, "'");
+                break;
+            }
+            case LIST: {
+                list_t list_element = *(list_t*)cur_element;
+                char* element = list_print(list_element);
+                strcat(output, element);
+                break;
+            }
         }
         
         if (i != list.length - 1) {
@@ -134,15 +158,13 @@ int main() {
     char* test_element_2 = "This is a different element";
 
     for (int i=0;i<5;i++){
-        test_list = list_append(test_list, "str", (void*)test_element_1);
+        test_list = list_append(test_list, STRING, (void*)test_element_1);
     }
 
-    test_list = list_insert(test_list, 0, "str", (void*)test_element_2);
+    test_list = list_insert(test_list, 0, STRING, (void*)test_element_2);
     
     char* output = list_print(test_list);
     printf("%s\n", output);
-
-    free(output);
 
     printf("%s\n", "");
     return 0;

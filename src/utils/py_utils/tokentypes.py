@@ -29,6 +29,8 @@ TOKEN_TYPES = {
     "RET": ("TT_ret", "return"),
     "IF": ("TT_if", "if"),
     "NOT": ("TT_not", "not"),
+    "AND": ("TT_and", "and"),
+    "OR": ("TT_or", "or"),
     "ELIF": ("TT_elif", "elif"),
     "ELSE": ("TT_else", "else"),
     "WHILE": ("TT_while", "while"),
@@ -45,14 +47,7 @@ KEYWORDS = [
     "ELSE", 
     "WHILE", 
     "FOR", 
-    "IN"
-]
-
-SPECIAL_TOKENS = [
-    "==", 
-    "!=", 
-    "+=", 
-    "-=",
-    "*=",
-    "/="
+    "IN",
+    "AND",
+    "OR"
 ]

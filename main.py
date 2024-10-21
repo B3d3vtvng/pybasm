@@ -5,8 +5,10 @@ def compile():
     cmdl_handler = CommandlineHandler()
     file_n, flags = cmdl_handler.handle_args()
     if cmdl_handler.error:
-        return cmdl_handler.error
+        print(cmdl_handler.error)
+        exit(1)
     compiler = Compiler(file_n, flags)
     compiler.compile()
+    print("Sucess!")
 
-compilation_result = compile()
+compile()

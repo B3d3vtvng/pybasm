@@ -6,15 +6,15 @@ class Error():
         self.file_n = file_n
 
     def __str__(self):
-        return f"{self.file_n}:{self.error_ln}  {self.error_t}: {self.error_v}"
+        return f"\n{self.file_n}:{self.error_ln}  {self.error_t}: {self.error_v}\n"
 
     
-class FileError():
-    def __init__(self, error_v, file_n):
+class FileError(Error):
+    def __init__(self, error_v: str, file_n: str) -> None:
         super().__init__("FileError", error_v, -1, file_n)
 
-    def __str__(self):
-        return f"FileError: {self.error_v}    File: {self.file_n}"
+    def __repr__(self):
+        return f"\nFileError: {self.error_v}    File: {self.file_n}\n"
 
     
 class FlagError():
@@ -24,7 +24,7 @@ class FlagError():
         self.flag = flag
 
     def __str__(self):
-        return f"{self.error_t}: {self.error_v}: {self.flag}"
+        return f"\n{self.error_t}: {self.error_v}: {self.flag}\n"
     
 
 class SyntaxError(Error):

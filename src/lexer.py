@@ -1,8 +1,8 @@
-from src.utils.tokentypes import TOKEN_TYPES, KEYWORDS 
-from src.utils.error import SyntaxError
-from src.utils.tokens import Token
-from src.utils.sort_tokens import sort_tokens
-from src.utils.lrange import lrange
+from src.utils.py_utils.tokentypes import TOKEN_TYPES, KEYWORDS 
+from src.utils.py_utils.error import SyntaxError
+from src.utils.py_utils.tokens import Token
+from src.utils.py_utils.sort_tokens import sort_tokens
+from src.utils.py_utils.lrange import lrange
 
 class Lexer():
     def __init__(self, file_n: str) -> None:
@@ -15,12 +15,11 @@ class Lexer():
             return file.readlines()
         
     def make_tokens(self) -> list:
-        for line in self.raw_code:
+        for i, line in enumerate(self.raw_code):
             if "#" in line:
-                old_line = line
-                line = line[line.index('#')]
-                self.raw_code.pop(self.raw_code.index(old_line))
-                self.raw_code.insert(line, self.raw_code.index(old_line))
+                line = line[:line.index('#')]
+                self.raw_code.pop(i)
+                self.raw_code[i] = line
         kw_tokens = self.make_kw_tokens()
         res = self.make_typed_tokens(kw_tokens)
         if not res:
@@ -52,7 +51,6 @@ class Lexer():
                 token_end_idx = line.index(token_ident)+len(token_ident)
                 if token_ident in line[token_end_idx:]:
                     redo_tokens.append([token_type, token_end_idx])
-
                 tokens.append(token)
 
             tokens.append(Token(i+1, len(line), "TT_eol", None))
@@ -77,6 +75,8 @@ class Lexer():
         tokens = sort_tokens(tokens)
         if tokens:
             tokens.append(Token(tokens[-1].ln+1, -1, "TT_eof", None))
+        else:
+            tokens = [Token(0, 0, "TT_eof", None)]
         return tokens
     
     def make_typed_tokens(self, kw_tokens: list[Token]) -> tuple[list[Token]]:
@@ -181,14 +181,15 @@ class Lexer():
         if len(occ_idxs) == 1:
             non_token_code.append((line[first_occ_idx+1:], first_occ_idx+1))
             if first_occ_idx != 0:
-                non_token_code = [(line[0:first_occ_idx-1], 0)] + non_token_code
+                non_token_code = [(line[:first_occ_idx], 0)] + non_token_code
+            return non_token_code
         elif first_occ_idx != 0:
             non_token_code.append((line[0:first_occ_idx], 0))
         for idx, occ_idx in enumerate(occ_idxs):
             if len(occ_idxs) != idx+1 and occ_idx+1 != occ_idxs[idx+1]:
                 non_token_code.append((line[occ_idx+1:occ_idxs[idx+1]].strip(), occ_idx+1))
         if occ_idx != len(line)-1:
-            if non_token_code[len(non_token_code)-1][0] != line[occ_idx+1:]:
+            if non_token_code[len(non_token_code)-1][1] != occ_idx:
                 non_token_code.append((line[occ_idx+1:], occ_idx+1))
 
         return non_token_code
@@ -240,7 +241,7 @@ class Lexer():
                 return True
             elif not char.isdigit():
                 return False
-            return True
+        return False
     
     def make_float_token(self, ln: int, non_token_idx: int, non_token: str) -> Token:
         float_val_left, float_val_right = non_token.split(".")
@@ -262,11 +263,12 @@ class Lexer():
         return token_ident.upper() in KEYWORDS
 
     def validate_keyword(self, token_ident: str, token_idx: int, line: str):
-        if line.strip() == token_ident: return True
+        line = line.strip()
+        if line == token_ident: return True
 
-        real_token_idx = line.strip().index(token_ident)
-        pre_token_idx = token_idx-1
-        post_token_idx = token_idx + len(token_ident)
+        real_token_idx = line.index(token_ident)
+        pre_token_idx = real_token_idx-1 if real_token_idx != 0 else 0
+        post_token_idx = real_token_idx + len(token_ident)
 
         if real_token_idx == 0 and len(line) > post_token_idx and line[post_token_idx] == " " or line[post_token_idx] == ":":
             return True
@@ -280,4 +282,10 @@ class Lexer():
         return False
     
 def get_token_ident(token_name: str) -> str:
-        return TOKEN_TYPES[token_name[3:].upper()][1]
+    match token_name:
+        case "TT_dequ": return "=="
+        case "TT_gequ": return ">="
+        case "TT_lequ": return "<="
+        case "TT_nequ": return "!="
+        case _:
+            return TOKEN_TYPES[token_name[3:].upper()][1]

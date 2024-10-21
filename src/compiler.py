@@ -1,12 +1,12 @@
 from src.lexer import Lexer
 from src.parser import Parser
+from src.code_generator import CodeGenerator
 
 class Compiler():
     def __init__(self, file_n, flags):
         self.flags = flags
         self.file_n = file_n
         self.new_file_n = self.get_new_file_n()
-        self.tokens = []
 
     def get_new_file_n(self):
         if not self.flags or "-bs" not in self.flags:
@@ -18,6 +18,7 @@ class Compiler():
     def compile(self):
         lexer = Lexer(self.file_n)
         tokens = lexer.make_tokens()
+        print(tokens)
         if lexer.error:
             print(lexer.error)
             exit(1)
@@ -25,6 +26,12 @@ class Compiler():
         ast = parser.make_ast()
         if parser.error:
             print(parser.error)
-            exit(1)
+            exit(2)
         print(ast)
+        code_generator = CodeGenerator(ast, self.new_file_n)
+        code_generator.generate_code()
+        if code_generator.error:
+            print(code_generator.error)
+            exit(3)
+        return 0
 

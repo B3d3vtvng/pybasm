@@ -258,16 +258,16 @@ class Parser():
         if len(arg_exprs) != len(last_func_def_node.arg_names):
             self.error = TypeError(f"{name}() takes {len(self.ast.cur_node.arg_names)} arguments but {len(arg_exprs)} were given!", cur_ln_num, self.file_n)
             return -1
+        if last_func_def_node.func_call_nodes:
+            last_func_def_node.func_call_nodes.append(new_node)
+        else:
+            last_func_def_node.func_call_nodes = [new_node]
         if not last_func_def_node.children:
             self.parse_func_def_children(arg_types, last_func_def_node, new_node)
         else:
             if arg_types != last_func_def_node.arg_types:
                 self.error = TypeError("Invalidly typed function arguments", cur_ln_num, self.file_n)
                 return -1
-        if last_func_def_node.func_call_nodes:
-            last_func_def_node.func_call_nodes.append(new_node)
-        else:
-            last_func_def_node.func_call_nodes = [new_node]
         self.ast.detraverse_node()
         return 0
     
@@ -336,7 +336,11 @@ class Parser():
         if self.is_valid_type(var_type, ("list",)):
             self.ast.traverse_node("value")
             self.ast.cur_node.children_types = self.get_array_types()
+            print(self.ast.cur_node.children_types)
+            if self.ast.cur_node.children_types == -1:
+                return -1
             self.ast.detraverse_node()
+            self.ast.cur_node.type = ("list",)
         self.ast.cur_node.type = var_type
         cur_var_identifier_dict = self.get_cur_scope_var_dict()
         cur_var_identifier_dict[line[0].token_v] = self.ast.cur_node
@@ -350,7 +354,6 @@ class Parser():
         if not tokens:
             self.error = SyntaxError("Invalid Expression", ln_num, self.file_n)
             return -1
-        print(self.ast)
         cur_expr_map = EXPR_MAP.copy()
         for kw in kwargs.keys():
             kw_int = int(kw[-1])
@@ -361,7 +364,7 @@ class Parser():
             return self.parse_simple_literal_and_var(tokens[0], traversal_type)
         if cur_expr_map[1] and self.is_array_literal(tokens):
             return self.parse_array_literal(tokens, traversal_type)
-        if len(tokens) >= 3 and cur_expr_map[3] and tokens[0].token_t == "TT_identifier" and tokens[1].token_t == "TT_lbracket" and tokens[len(tokens)-1].token_t == "TT_rbracket":
+        if len(tokens) >= 3 and cur_expr_map[3] and tokens[0].token_t == "TT_identifier" and tokens[1].token_t == "TT_lbracket" and tokens[len(tokens)-1].token_t == "TT_rbracket" and self.is_array_literal(tokens):
             return self.parse_array_var(tokens, traversal_type)
         if len(tokens) >= 3 and cur_expr_map[5] and tokens[0].token_t == "TT_identifier" and tokens[1].token_t == "TT_lparen" and tokens[len(tokens)-1].token_t == "TT_rparen":
             if self.parse_func_call(tokens, traversal_type, from_expr=True) == -1: return -1
@@ -376,11 +379,11 @@ class Parser():
             if cur_expr_map[7] and token.token_t in ("TT_sub", "TT_plus", "TT_mul", "TT_div") and not [token for token in tokens if token.token_t in ("TT_equ", "TT_greater", "TT_less")]:
                 return self.parse_binop_expression(tokens, traversal_type)
         if cur_expr_map[4] and [token for token in tokens if token.token_t == "TT_colon"]:
-            return self.parse_slice_expression(tokens, traversal_type)
+            return self.parse_slice_expression(tokens, traversal_type, ln_num)
         self.error = SyntaxError("Invalid Expression", ln_num, self.file_n)
         return -1
 
-    def parse_slice_expression(self, tokens: list[Token], traversal_type: str) -> str | int:
+    def parse_slice_expression(self, tokens: list[Token], traversal_type: str, ln_num: int) -> str | int:
         if len(tokens) == 1:
             self.error = SyntaxError("Invalid syntax", tokens[0].token_t, self.file_n)
             return -1
@@ -395,7 +398,7 @@ class Parser():
             else:
                 tokens_to_parse = tokens[:len(tokens)-1]
                 traversal_type = "left"
-            expr_type = self.parse_expression(tokens_to_parse, traversal_type)
+            expr_type = self.parse_expression(tokens_to_parse, traversal_type, ln_num)
         else:
             left = tokens[:operator_idx]
             right = tokens[operator_idx+1:]
@@ -525,7 +528,7 @@ class Parser():
             return -1
         node_id = self.ast.append_node(ArrayVarNode(var_identifier), traversal_type)
         self.ast.traverse_node_by_id(node_id, traversal_type)
-        expr_type = self.parse_expression(tokens, "content", cur_ln_num, expr_1=False, expr_3=False, expr_4=False, expr_8=False)
+        expr_type = self.parse_expression(tokens, "content", cur_ln_num, expr_1=False, expr_3=False, expr_8=False)
         if expr_type == -1: return -1
         if not self.is_valid_type(expr_type, ("int",)):
             self.error = TypeError(f"list indices must be of type int, not {expr_type}", cur_ln_num, self.file_n)
@@ -662,15 +665,15 @@ class Parser():
         cur_node = self.ast.cur_node
         array_nodes = self.get_iter_nodes()
         self.ast.cur_node = cur_node
+        if array_nodes == -1: return -1
         if isinstance(array_nodes, tuple):
             return array_nodes
         types = []
-
         for array_node in array_nodes:
             if array_node.children:
                 for child in array_node.children:
                     types.append(child.type)
-        return tuple(set(types))
+        return tuple(types)
     
     def get_iter_nodes(self) -> list[ASTNode] | tuple[str]:
         if isinstance(self.ast.cur_node, ForLoopNode):
@@ -681,6 +684,11 @@ class Parser():
         if isinstance(self.ast.cur_node, ArrayNode):
             return [self.ast.cur_node]
         if isinstance(self.ast.cur_node, AssignNode):
+            if not self.ast.cur_node.value:
+                parent_func_def_node = self.ast.get_parent_node(FuncDefNode)
+                arg_index = parent_func_def_node.arg_names.index(self.ast.cur_node.name)
+                self.ast.cur_node = parent_func_def_node.func_call_nodes[0].args[arg_index]
+                return self.get_iter_nodes()
             return self.ast.cur_node.children_types if self.ast.cur_node.children_types else []
         if isinstance(self.ast.cur_node, VarNode):
             cur_var_identifier_dict = self.get_cur_scope_var_dict()
@@ -690,10 +698,14 @@ class Parser():
             nodes = []
             cur_node = self.ast.cur_node
             self.ast.traverse_node("left")
-            nodes += self.get_iter_nodes()
+            right_types = self.get_iter_nodes()
+            if right_types == -1: return -1
+            nodes += right_types
             self.ast.cur_node = cur_node
             self.ast.traverse_node("right")
-            nodes += self.get_iter_nodes()
+            left_types = self.get_iter_nodes()
+            if left_types == -1: return -1
+            nodes += left_types
             self.ast.cur_node = cur_node
             return nodes
         if isinstance(self.ast.cur_node, FuncCallNode):
@@ -701,6 +713,7 @@ class Parser():
             self.ast.traverse_node("return_node")
             self.ast.traverse_node("return_value")
             return self.get_iter_nodes()
+        return []
 
 
     def merge_equ(self, tokens: list[Token]) -> list[Token]:

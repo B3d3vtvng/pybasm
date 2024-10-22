@@ -1,5 +1,6 @@
 from src.lexer import Lexer
 from src.parser import Parser
+from src.ast_optimization_pass import ASTOptimizationPass
 from src.code_generator import CodeGenerator
 
 class Compiler():
@@ -9,29 +10,29 @@ class Compiler():
         self.new_file_n = self.get_new_file_n()
 
     def get_new_file_n(self):
-        if not self.flags or "-bs" not in self.flags:
-            raw_file_n = self.file_n.split('.')[1]
-            return raw_file_n+".bs"
+        if not self.flags or "-o" not in self.flags:
+            raw_file_n = self.file_n.split('.')[0]
+            return raw_file_n+".c"
         else:
-            return self.flags["-bs"]
+            return self.flags["-o"]
+        
+    #wrapper function to handle errors in a clean way :)
+    def run_component(self, component: object, function: callable, error_code, *args) -> any:
+        output = function(*args)
+        if component.error:
+            print(component.error)
+            exit(error_code)
+        return output
         
     def compile(self):
         lexer = Lexer(self.file_n)
-        tokens = lexer.make_tokens()
-        print(tokens)
-        if lexer.error:
-            print(lexer.error)
-            exit(1)
+        tokens = self.run_component(lexer, lexer.make_tokens, 1)
         parser = Parser(tokens, self.file_n)
-        ast = parser.make_ast()
-        if parser.error:
-            print(parser.error)
-            exit(2)
+        ast = self.run_component(parser, parser.make_ast, 2)
         print(ast)
+        ast_optimizer = ASTOptimizationPass(ast)
+        ast = self.run_component(ast_optimizer, ast_optimizer.optimize_ast, 3)
         code_generator = CodeGenerator(ast, self.new_file_n)
-        code_generator.generate_code()
-        if code_generator.error:
-            print(code_generator.error)
-            exit(3)
+        self.run_component(code_generator, code_generator.generate_code, 4)
         return 0
 

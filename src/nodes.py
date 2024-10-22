@@ -14,18 +14,12 @@ class ASTBaseNode(ASTNode):
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
         child_str = f""
-        help_str = ""
-        if not self.children:
-            child_str = "None"
-            help_str = "\n    "
-        else:
-            for child in self.children:
-                if not child: continue
-                child.repr_offset = self.repr_offset + 2
-                child_str += f"\n{"    " * child.repr_offset}{child}"
-                child_str = child_str
+        for child in self.children:
+            child.repr_offset = self.repr_offset + 2
+            child_str += f"\n{"    " * child.repr_offset}{child}"
+            child_str = child_str
         
-        return f"Module[\n{tab_offset}    Children[{help_str}{tab_offset}    {child_str}\n{tab_offset}    ]\n{tab_offset}    Len: {len(self.children)}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+        return f"Module[\n{tab_offset}    Children[{tab_offset}    {child_str}\n{tab_offset}    ]\n{tab_offset}    Len: {len(self.children)}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
     
 class ExpressionNode(ASTNode):
     def __init__(self, op: str) -> None:
@@ -36,10 +30,8 @@ class ExpressionNode(ASTNode):
         self.type = None
 
     def __repr__(self) -> str:
-        if self.left:
-            self.left.repr_offset = self.repr_offset + 2
-        if self.right:
-            self.right.repr_offset = self.repr_offset + 2
+        self.left.repr_offset = self.repr_offset + 2
+        self.right.repr_offset = self.repr_offset + 2
         tab_offset = "    " * self.repr_offset
         return f"ExpressionNode[\n{tab_offset}    Left[ \n{tab_offset}        {self.left}\n{tab_offset}    ]\n{tab_offset}    Operator: '{self.op}'  \n{tab_offset}    Right:[\n{tab_offset}        {self.right}\n{tab_offset}    ]    \n{tab_offset}    Id: {self.id}\n{tab_offset}]"
     
@@ -82,18 +74,12 @@ class ArrayNode(ASTNode):
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
         child_str = f""
-        help_str = ""
-        if not self.children:
-            child_str = "None"
-            help_str = "\n    "
-        else:
-            for child in self.children:
-                if not child: continue
-                child.repr_offset = self.repr_offset + 2
-                child_str += f"\n{"    " * child.repr_offset}{child}"
-                child_str = child_str
+        for child in self.children:
+            child.repr_offset = self.repr_offset + 2
+            child_str += f"\n{"    " * child.repr_offset}{child}"
+            child_str = child_str
         
-        return f"ArrayNode[\n{tab_offset}    Children[{help_str}{tab_offset}    {child_str}\n{tab_offset}    ]\n{tab_offset}    Len: {len(self.children)}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+        return f"ArrayNode[\n{tab_offset}    Children[{tab_offset}    {child_str}\n{tab_offset}    ]\n{tab_offset}    Len: {len(self.children)}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
 class VarNode(ASTNode):
     def __init__(self, name: str) -> None:

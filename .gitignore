@@ -1,0 +1,11 @@
+#Ignore all pycache folders
+__pycache__/
+
+#Ignore all debugger config folders
+pyclib.dSYM/
+
+#Ignore all .vscode folders
+.vscode/
+
+#Ignore C executables
+.out

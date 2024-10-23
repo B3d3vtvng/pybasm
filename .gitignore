@@ -1,11 +1,11 @@
 #Ignore all pycache folders
-__pycache__/
+*/__pycache__/
 
 #Ignore all debugger config folders
-pyclib.dSYM/
+*/pyclib.dSYM/
 
 #Ignore all .vscode folders
-.vscode/
+*/.vscode/
 
 #Ignore C executables
 .out

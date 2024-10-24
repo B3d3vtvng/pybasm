@@ -48,7 +48,8 @@ I have already implemented and tested the Lexer and I am currently working on te
 
 ## Contributing
 
-As I mentioned, I am kind of unexperienced on this topic so I will refrain from demanding a certain coding style or good documentation for pull requests. Please just make sure that your code actually works and i will probably accept it :)
+This Repository is currently not open for Contributing as it is a school project of mine and it will be plagiarism if I include any work that has not been done by myself. 
+This is going to change in Summer 2025 when I will have submitted my school project.
 
 
 ## Build process

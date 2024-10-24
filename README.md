@@ -17,16 +17,15 @@ This Project has been a dream of mine for about half a year now. Do not take thi
 
 ## Features
 
-Features will be supported when I have finished the Compiler include:
+Features that will be supported when I have finished the Transpiler include:
 
-- Basic data types (int, str, bool, float, lists)
-- Basic arithmetic operations (add, subtract, multiply, divide)
-- Basic logical operations (and, op, ==, <, ...)
+- Variables with basic data types (int, str, bool, float, lists)
+- Basic arithmetic operations (addition, subtraction, multiplication, division)
+- Basic logical operations (and, or, ==, <, ...)
 - Basic control flow structures (if, elif, else, while, for, ...)
-- Variables
 - Functions
 - Basic I/O operations (read, print)
-- Basic build-in functions (len(), type casting, ...)
+- Basic built-in functions (len(), type casting, ...)
 
 Possible features in the future could be:
 
@@ -34,12 +33,12 @@ Possible features in the future could be:
 - A Python-like break keyword
 - More advanced data types (tuple, dict, ...)
 
-I am not planning an implementing classes.
+I am not planning on implementing OOP features.
 
 
 ## Use Cases
 
-Possible use cases could be optiming simple but performance-critical functions by compiling them to C and including them as C functions into an existing Python file or just as a fun toy to play around with. If anyone has any other ideas on what this could be useful for, just make an issue and I will include it here.
+Possible use cases could be optimising simple but performance-critical functions by compiling them to C and including them as C functions into an existing Python file. Or just as a fun toy to play around with. If anyone has any other ideas on what this could be useful for, just make an issue and I will include it here.
 
 
 ## Currently developed parts
